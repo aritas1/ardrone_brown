@@ -1,3 +1,6 @@
+#include <iostream>
+#include <geometry_msgs/Pose.h>
+#include <sensor_msgs/Image.h>
 #include "ardrone_driver.h"
 #include "teleop_twist.h"
 #include "video.h"
@@ -14,6 +17,7 @@ ARDroneDriver::ARDroneDriver()
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertise("/ardrone/image_raw", 1);
 	pose_pub = node_handle.advertise<geometry_msgs::Pose>("/ardrone/pose", 1);
+	vel_pub = node_handle.advertise<geometry_msgs::Twist>("/ardrone/velocity", 1);
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -49,6 +53,34 @@ void ARDroneDriver::publish_video()
 	msg.data.resize(STREAM_WIDTH*STREAM_HEIGHT*3);
 	std::copy(buffer, buffer+(STREAM_WIDTH*STREAM_HEIGHT*3), msg.data.begin());
 	image_pub.publish(msg);
+}
+
+void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
+{
+	geometry_msgs::Pose  pose;
+	geometry_msgs::Twist vel;
+
+	// TODO: Wrap the battery life in a standard ROS message.
+	std::cout << pnd->navdata_demo.vbat_flying_percentage << "%" << std::endl;
+
+	// Convert the Tait-Bryan angles returned by the SDK into a quaternion used
+	// by the ROS's TF node.
+	double pitch     = pnd->navdata_demo.theta * (1000.0 * M_PI) / 180;
+	double yaw       = pnd->navdata_demo.psi   * (1000.0 * M_PI) / 180;
+	double roll      = pnd->navdata_demo.phi   * (1000.0 * M_PI) / 180;
+	double z         = pnd->navdata_demo.altitude;
+	pose.orientation = tf::createQuaternionMsgFromRPY(roll, pitch, yaw);
+	pose.position    = tf::Point(0.0, 0.0, z);
+	pose_pub.publish(pose);
+
+	// Wrap the linear velocity returned by the drone in a twist message.
+	vel.linear.x  = pnd->navdata_demo.vx;
+	vel.linear.y  = pnd->navdata_demo.vy;
+	vel.linear.z  = pnd->navdata_demo.vz
+	vel.angular.x = 0.0;
+	vel.angular.y = 0.0;
+	vel.angular.z = 0.0;
+	vel_pub.publish(vel);
 }
 
 ARDroneDriver &ARDroneDriver::getInstance(void)
