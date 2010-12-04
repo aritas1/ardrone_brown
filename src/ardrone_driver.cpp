@@ -13,6 +13,7 @@ ARDroneDriver::ARDroneDriver()
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertise("/ardrone/image_raw", 1);
+	pose_pub = node_handle.advertise<geometry_msgs::Pose>("/ardrone/pose", 1);
 }
 
 ARDroneDriver::~ARDroneDriver()

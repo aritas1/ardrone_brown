@@ -3,6 +3,7 @@
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
+#include <geometry_msgs/Pose.h>
 #include <sensor_msgs/Image.h>
 
 class ARDroneDriver
@@ -22,6 +23,7 @@ private:
 	ros::Subscriber land_sub;
 	image_transport::ImageTransport image_transport;
 	image_transport::Publisher image_pub;
+	ros::Publisher pose_pub;
 
 	int last_frame_id;
 	int flying_state;
