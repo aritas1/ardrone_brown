@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ARDroneDriver::ARDroneDriver()
-	: image_transport(node_handle)
+	: image_transport(node_handle), instance(NULL)
 {
 	cmd_vel_sub = node_handle.subscribe("/cmd_vel", 1, &cmdVelCallback);
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
@@ -51,6 +51,14 @@ void ARDroneDriver::publish_video()
 	image_pub.publish(msg);
 }
 
+ARDroneDriver &ARDroneDriver::getInstance(void)
+{
+	if (instance == NULL) {
+		instance = new ARDroneDriver;
+	}
+	return instance;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // custom_main
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +81,7 @@ extern "C" int custom_main(int argc, char** argv)
 		ardrone_tool_init(argc, argv);
 		ros::init(argc, argv, "ardrone_driver");
 
-		ARDroneDriver().run();
+		ARDroneDriver::getInstance().run();
 	}
 
 	return 0;

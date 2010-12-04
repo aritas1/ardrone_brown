@@ -9,12 +9,15 @@
 class ARDroneDriver
 {
 public:
-	ARDroneDriver();
 	~ARDroneDriver();
 
 	void run();
 
+	static ARDroneDriver &getInstance();
+
 private:
+	ARDroneDriver();
+
 	void publish_video();
 
 	ros::NodeHandle node_handle;
@@ -27,6 +30,7 @@ private:
 
 	int last_frame_id;
 	int flying_state;
+	static ARDroneDriver *instance;
 };
 
 #endif
