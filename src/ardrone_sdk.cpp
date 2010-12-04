@@ -19,7 +19,7 @@ extern "C" {
 	END_THREAD_TABLE
 
 	BEGIN_NAVDATA_HANDLER_TABLE
-	  NAVDATA_HANDLER_TABLE_ENTRY(navdata_init, navdata_process, navdata_release, NULL)
+		NAVDATA_HANDLER_TABLE_ENTRY(navdata_init, navdata_process, navdata_release, NULL)
 	END_NAVDATA_HANDLER_TABLE
 }
 
