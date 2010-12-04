@@ -3,7 +3,7 @@
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
-#include "androne_sdk.h"
+#include "ardrone_sdk.h"
 
 class ARDroneDriver
 {

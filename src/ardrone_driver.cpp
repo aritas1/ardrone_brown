@@ -1,6 +1,8 @@
 #include <iostream>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Image.h>
+#include <tf/transform_broadcaster.h>
 #include "ardrone_driver.h"
 #include "teleop_twist.h"
 #include "video.h"
@@ -9,8 +11,10 @@
 // class ARDroneDriver
 ////////////////////////////////////////////////////////////////////////////////
 
+ARDroneDriver *ARDroneDriver::instance = NULL;
+
 ARDroneDriver::ARDroneDriver()
-	: image_transport(node_handle), instance(NULL)
+	: image_transport(node_handle)
 {
 	cmd_vel_sub = node_handle.subscribe("/cmd_vel", 1, &cmdVelCallback);
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
@@ -69,14 +73,18 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	double yaw       = pnd->navdata_demo.psi   * (1000.0 * M_PI) / 180;
 	double roll      = pnd->navdata_demo.phi   * (1000.0 * M_PI) / 180;
 	double z         = pnd->navdata_demo.altitude;
-	pose.orientation = tf::createQuaternionMsgFromRPY(roll, pitch, yaw);
-	pose.position    = tf::Point(0.0, 0.0, z);
+
+
+	pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
+	pose.position.x = 0.0;
+	pose.position.y = 0.0;
+	pose.position.z = z;
 	pose_pub.publish(pose);
 
 	// Wrap the linear velocity returned by the drone in a twist message.
 	vel.linear.x  = pnd->navdata_demo.vx;
 	vel.linear.y  = pnd->navdata_demo.vy;
-	vel.linear.z  = pnd->navdata_demo.vz
+	vel.linear.z  = pnd->navdata_demo.vz;
 	vel.angular.x = 0.0;
 	vel.angular.y = 0.0;
 	vel.angular.z = 0.0;
@@ -88,7 +96,7 @@ ARDroneDriver &ARDroneDriver::getInstance(void)
 	if (instance == NULL) {
 		instance = new ARDroneDriver;
 	}
-	return instance;
+	return *instance;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
