@@ -1,5 +1,7 @@
+#include <cmath>
+#include <ctime>
 #include <iostream>
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Image.h>
 #include <tf/transform_broadcaster.h>
@@ -14,7 +16,7 @@
 ARDroneDriver *ARDroneDriver::instance = NULL;
 
 ARDroneDriver::ARDroneDriver()
-	: image_transport(node_handle)
+	: image_transport(node_handle), pose_seq(0u)
 {
 	cmd_vel_sub = node_handle.subscribe("/cmd_vel", 1, &cmdVelCallback);
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
@@ -61,8 +63,8 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 {
-	geometry_msgs::Pose  pose;
-	geometry_msgs::Twist vel;
+	geometry_msgs::PoseStamped pose;
+	geometry_msgs::Twist       vel;
 
 	// TODO: Wrap the battery life in a standard ROS message.
 	std::cout << pnd->navdata_demo.vbat_flying_percentage << "%" << std::endl;
@@ -74,11 +76,13 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	double roll      = pnd->navdata_demo.phi   * (1000.0 * M_PI) / 180;
 	double z         = pnd->navdata_demo.altitude;
 
-
-	pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
-	pose.position.x = 0.0;
-	pose.position.y = 0.0;
-	pose.position.z = z;
+	pose.header.seq       = pose_seq;
+	pose.header.stamp     = ros::Time::now();
+	pose.header.frame_id  = "0";
+	pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
+	pose.pose.position.x  = 0.0;
+	pose.pose.position.y  = 0.0;
+	pose.pose.position.z  = z;
 	pose_pub.publish(pose);
 
 	// Wrap the linear velocity returned by the drone in a twist message.

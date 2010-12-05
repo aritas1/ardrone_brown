@@ -28,6 +28,7 @@ private:
 	image_transport::Publisher image_pub;
 	ros::Publisher pose_pub;
 	ros::Publisher vel_pub;
+	uint32_t pose_seq;
 
 	int last_frame_id;
 	int flying_state;
