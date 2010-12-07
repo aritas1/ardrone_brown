@@ -69,10 +69,9 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	// TODO: Wrap the battery life in a standard ROS message.
 	std::cout << pnd->navdata_demo.vbat_flying_percentage << "%" << std::endl;
 
-	// Convert the Tait-Bryan angles returned by the SDK into a quaternion used
-	// by the ROS's TF node.
-	double pitch     = pnd->navdata_demo.theta * (1000.0 * M_PI) / 180;
-	double yaw       = pnd->navdata_demo.psi   * (1000.0 * M_PI) / 180;
+	// Convert the Tait-Bryan angles returned by the SDK into a quaternion.
+	double pitch     = -pnd->navdata_demo.theta * (1000.0 * M_PI) / 180;
+	double yaw       = -pnd->navdata_demo.psi   * (1000.0 * M_PI) / 180;
 	double roll      = pnd->navdata_demo.phi   * (1000.0 * M_PI) / 180;
 	double z         = pnd->navdata_demo.altitude;
 
