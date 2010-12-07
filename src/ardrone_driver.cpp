@@ -23,7 +23,7 @@ ARDroneDriver::ARDroneDriver()
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertise("/ardrone/image_raw", 1);
 	pose_pub = node_handle.advertise<geometry_msgs::PoseStamped>("/ardrone/pose", 1);
-	vel_pub = node_handle.advertise<geometry_msgs::Twist>("/ardrone/velocity", 1);
+	vel_pub = node_handle.advertise<geometry_msgs::TwistStamped>("/ardrone/velocity", 1);
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -63,8 +63,8 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 {
-	geometry_msgs::PoseStamped pose;
-	geometry_msgs::Twist       vel;
+	geometry_msgs::PoseStamped  pose;
+	geometry_msgs::TwistStamped vel;
 
 	// TODO: Wrap the battery life in a standard ROS message.
 	std::cout << pnd->navdata_demo.vbat_flying_percentage << "%" << std::endl;
@@ -84,12 +84,14 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	pose_pub.publish(pose);
 
 	// Wrap the linear velocity returned by the drone in a twist message.
-	vel.linear.x  = pnd->navdata_demo.vx;
-	vel.linear.y  = pnd->navdata_demo.vy;
-	vel.linear.z  = pnd->navdata_demo.vz;
-	vel.angular.x = 0.0;
-	vel.angular.y = 0.0;
-	vel.angular.z = 0.0;
+	vel.header.stamp    = ros::Time::now();
+	vel.header.frame_id = "map";
+	vel.linear.x        = pnd->navdata_demo.vx;
+	vel.linear.y        = pnd->navdata_demo.vy;
+	vel.linear.z        = pnd->navdata_demo.vz;
+	vel.angular.x       = 0.0;
+	vel.angular.y       = 0.0;
+	vel.angular.z       = 0.0;
 	vel_pub.publish(vel);
 }
 
