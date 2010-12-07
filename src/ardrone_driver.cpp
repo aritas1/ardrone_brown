@@ -75,9 +75,8 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	double roll   = pnd->navdata_demo.phi   * (1000.0 * M_PI) / 180;
 	double z      = pnd->navdata_demo.altitude;
 
-	pose.header.seq       = pose_seq;
 	pose.header.stamp     = ros::Time::now();
-	pose.header.frame_id  = "0";
+	pose.header.frame_id  = "map";
 	pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
 	pose.pose.position.x  = 0.0;
 	pose.pose.position.y  = 0.0;
