@@ -26,6 +26,7 @@ private:
 	ros::Subscriber land_sub;
 	image_transport::ImageTransport image_transport;
 	image_transport::Publisher image_pub;
+	ros::Publisher battery_pub;
 	ros::Publisher pose_pub;
 	ros::Publisher vel_pub;
 	uint32_t pose_seq;

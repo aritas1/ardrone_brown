@@ -4,6 +4,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Image.h>
+#include <std_msgs/Uint32.h>
 #include <tf/transform_broadcaster.h>
 #include "ardrone_driver.h"
 #include "teleop_twist.h"
@@ -22,6 +23,7 @@ ARDroneDriver::ARDroneDriver()
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertise("/ardrone/image_raw", 1);
+	battery_pub = node_handle.advertise<std_msgs::UInt32>("/ardrone/battery", 1);
 	pose_pub = node_handle.advertise<geometry_msgs::PoseStamped>("/ardrone/pose", 1);
 	vel_pub = node_handle.advertise<geometry_msgs::TwistStamped>("/ardrone/velocity", 1);
 }
@@ -66,8 +68,8 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	geometry_msgs::PoseStamped  pose;
 	geometry_msgs::TwistStamped vel;
 
-	// TODO: Wrap the battery life in a standard ROS message.
-	std::cout << pnd->navdata_demo.vbat_flying_percentage << "%" << std::endl;
+	// Brodcast the battery percentage as a raw unsigned integer.
+	battery_pub.publish(pnd->navdata_demo.vbat_flying_percentage);
 
 	// Convert the Tait-Bryan angles returned by the SDK into a quaternion.
 	double pitch  = -pnd->navdata_demo.theta * (1000.0 * M_PI) / 180;
