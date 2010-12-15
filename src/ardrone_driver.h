@@ -31,7 +31,6 @@ private:
 	ros::Publisher imu_pub;
 	ros::Publisher pose_pub;
 	ros::Publisher twist_pub;
-	uint32_t pose_seq;
 
 	int last_frame_id;
 	int flying_state;

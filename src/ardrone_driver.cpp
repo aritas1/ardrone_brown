@@ -17,7 +17,7 @@
 ARDroneDriver *ARDroneDriver::instance = NULL;
 
 ARDroneDriver::ARDroneDriver()
-	: image_transport(node_handle), pose_seq(0u)
+	: image_transport(node_handle)
 {
 	cmd_vel_sub = node_handle.subscribe("/cmd_vel", 1, &cmdVelCallback);
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
