@@ -24,7 +24,7 @@ ARDroneDriver::ARDroneDriver()
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertise("/ardrone/image_raw", 1);
 
-	battery_pub = node_handle.advertise<std_msgs::UInt32>("/ardrone/battery", 1);
+	battery_pub = node_handle.advertise<std_msgs::Float64>("/ardrone/battery", 1);
 	pose_pub    = node_handle.advertise<geometry_msgs::PoseStamped>("/ardrone/pose", 1);
 	imu_pub     = node_handle.advertise<sensor_msgs::Imu>("/ardrone/imu", 1);
 	twist_pub   = node_handle.advertise<geometry_msgs::TwistStamped>("/ardrone/twist", 1);
