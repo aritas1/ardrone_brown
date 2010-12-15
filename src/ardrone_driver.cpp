@@ -4,7 +4,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Image.h>
-#include <std_msgs/Uint32.h>
+#include <std_msgs/UInt32.h>
 #include <tf/transform_broadcaster.h>
 #include "ardrone_driver.h"
 #include "teleop_twist.h"
@@ -71,14 +71,18 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	// Brodcast the battery percentage as a raw unsigned integer.
 	battery_pub.publish(pnd->navdata_demo.vbat_flying_percentage);
 
-	// Convert the Tait-Bryan angles returned by the SDK into a quaternion.
-	double pitch  = -pnd->navdata_demo.theta * (1000.0 * M_PI) / 180;
-	double yaw    = -pnd->navdata_demo.psi   * (1000.0 * M_PI) / 180;
-	double roll   = pnd->navdata_demo.phi   * (1000.0 * M_PI) / 180;
-	double z      = pnd->navdata_demo.altitude;
+	// Convert the Tait-Bryan angles in millidegrees into a quaternion.
+	double pitch  = -pnd->navdata_demo.theta * M_PI / (180 * 1000.0);
+	double yaw    = -pnd->navdata_demo.psi   * M_PI / (180 * 1000.0);
+	double roll   = pnd->navdata_demo.phi    * M_PI / (180 * 1000.0);
+
+	// Convert the altitude in millimeters to meters for ROS. This is contrary to
+	// the API documentation, which says altitude is in centimeters.
+	double z = pnd->navdata_demo.altitude / 1000.0;
 
 	pose.header.stamp     = ros::Time::now();
 	pose.header.frame_id  = "map";
+
 	pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
 	pose.pose.position.x  = 0.0;
 	pose.pose.position.y  = 0.0;
@@ -88,12 +92,12 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	// Wrap the linear velocity returned by the drone in a twist message.
 	vel.header.stamp    = ros::Time::now();
 	vel.header.frame_id = "map";
-	vel.linear.x        = pnd->navdata_demo.vx;
-	vel.linear.y        = pnd->navdata_demo.vy;
-	vel.linear.z        = pnd->navdata_demo.vz;
-	vel.angular.x       = 0.0;
-	vel.angular.y       = 0.0;
-	vel.angular.z       = 0.0;
+	vel.twist.linear.x  = pnd->navdata_demo.vx;
+	vel.twist.linear.y  = pnd->navdata_demo.vy;
+	vel.twist.linear.z  = pnd->navdata_demo.vz;
+	vel.twist.angular.x = 0.0;
+	vel.twist.angular.y = 0.0;
+	vel.twist.angular.z = 0.0;
 	vel_pub.publish(vel);
 }
 
