@@ -23,9 +23,11 @@ ARDroneDriver::ARDroneDriver()
 	takeoff_sub = node_handle.subscribe("/ardrone/takeoff", 1, &takeoffCallback);
 	land_sub = node_handle.subscribe("/ardrone/land", 1, &landCallback);
 	image_pub = image_transport.advertise("/ardrone/image_raw", 1);
+
 	battery_pub = node_handle.advertise<std_msgs::UInt32>("/ardrone/battery", 1);
-	pose_pub = node_handle.advertise<geometry_msgs::PoseStamped>("/ardrone/pose", 1);
-	vel_pub = node_handle.advertise<geometry_msgs::TwistStamped>("/ardrone/velocity", 1);
+	pose_pub    = node_handle.advertise<geometry_msgs::PoseStamped>("/ardrone/pose", 1);
+	imu_pub     = node_handle.advertise<sensor_msgs::Imu>("/ardrone/imu", 1);
+	twist_pub   = node_handle.advertise<geometry_msgs::TwistStamped>("/ardrone/twist", 1);
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -65,40 +67,61 @@ void ARDroneDriver::publish_video()
 
 void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 {
-	geometry_msgs::PoseStamped  pose;
-	geometry_msgs::TwistStamped vel;
+	sensor_msgs::Imu          imu;
+	common_msgs::PoseStamped  pose;
+	common_msgs::TwistStamped twist;
+	float64                   bat_percent;
 
-	// Brodcast the battery percentage as a raw unsigned integer.
-	battery_pub.publish(pnd->navdata_demo.vbat_flying_percentage);
+	imu.header.stamp      = ros::Time::now();
+	pose.header.stamp     = ros::Time::now();
+	twist.header.stamp    = ros::Time::now();
+	imu.header.frame_id   = "map";
+	pose.header.frame_id  = "map";
+	twist.header.frame_id = "map";
 
 	// Convert the Tait-Bryan angles in millidegrees into a quaternion.
-	double pitch  = -pnd->navdata_demo.theta * M_PI / (180 * 1000.0);
-	double yaw    = -pnd->navdata_demo.psi   * M_PI / (180 * 1000.0);
-	double roll   = pnd->navdata_demo.phi    * M_PI / (180 * 1000.0);
+	double pitch     = -pnd->navdata_demo.theta * M_PI / (180 * 1000.0);
+	double yaw       = -pnd->navdata_demo.psi   * M_PI / (180 * 1000.0);
+	double roll      =  pnd->navdata_demo.phi   * M_PI / (180 * 1000.0);
+	imu.orientation  = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
+	pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
 
-	// Convert the altitude in millimeters to meters for ROS. This is contrary to
-	// the API documentation, which says altitude is in centimeters.
-	double z = pnd->navdata_demo.altitude / 1000.0;
+	// Convert gyros measurements to rad/s from deg/s.
+	imu.angular_velocity.x = pnd->navdata_phys_measures.phys_gyros[GYRO_X] * M_PI / (180 * 1000.0);
+	imu.angular_velocity.y = pnd->navdata_phys_measures.phys_gyros[GYRO_Y] * M_PI / (180 * 1000.0);
+	imu.angular_velocity.z = pnd->navdata_phys_measures.phys_gyros[GYRO_Y] * M_PI / (180 * 1000.0);
+	twist.twist.angular.x = imu.angular_velocity.x;
+	twist.twist.angular.y = imu.angular_velocity.y;
+	twist.twist.angular.z = imu.angular_velocity.z;
 
-	pose.header.stamp     = ros::Time::now();
-	pose.header.frame_id  = "map";
-
-	pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
-	pose.pose.position.x  = 0.0;
-	pose.pose.position.y  = 0.0;
-	pose.pose.position.z  = z;
-	pose_pub.publish(pose);
+	// Acceleration is specified in milli-G's instead of m/s^2.
+	imu.linear_acceleration.x = pnd->navdata_phys_measures.phys_accs[ACC_X] / (1000.0 * 9.80665);
+	imu.linear_acceleration.y = pnd->navdata_phys_measures.phys_accs[ACC_Y] / (1000.0 * 9.80665);
+	imu.linear_acceleration.z = pnd->navdata_phys_measures.phys_accs[ACC_Z] / (1000.0 * 9.80665);
 
 	// Wrap the linear velocity returned by the drone in a twist message.
-	vel.header.stamp    = ros::Time::now();
-	vel.header.frame_id = "map";
-	vel.twist.linear.x  = pnd->navdata_demo.vx / 1000.0;
-	vel.twist.linear.y  = pnd->navdata_demo.vy / 1000.0;
-	vel.twist.linear.z  = pnd->navdata_demo.vz / 1000.0;
-	vel.twist.angular.x = pnd->;
-	vel.twist.angular.y = 0.0;
-	vel.twist.angular.z = 0.0;
-	vel_pub.publish(vel);
+	twist.twist.linear.x = pnd->navdata_demo.vx / 1000.0;
+	twist.twist.linear.y = pnd->navdata_demo.vy / 1000.0;
+	twist.twist.linear.z = pnd->navdata_demo.vz / 1000.0;
+
+	// TODO: Measure the covariance of the IMU.
+	imu.orientation_covariance[0]         = -1.0;
+	imu.angular_velocity_covariance[0]    = -1.0;
+	imu.linear_acceleration_covariance[0] = -1.0;
+
+	// TODO: Broadcast both battery voltage in addition to charge percentage.
+	bat_percent = navdata_demo.vbat_flying_percentage;
+
+	// Empirical tests seem to indicate that the documentation is incorrect
+	// and altitude is expressed in millimeters instead of centimeters.
+	pose.position.x = 0.0;
+	pose.position.y = 0.0;
+	pose.position.z = pnd->navdata_demo.altitude / 1000.0;
+
+	battery_pub.publish(bat_percent);
+	imu_pub.publish(imu);
+	pose_pub.publish(pose);
+	twist_pub.publish(twist)
 }
 
 ARDroneDriver &ARDroneDriver::getInstance(void)
