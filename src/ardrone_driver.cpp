@@ -92,10 +92,10 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	// Wrap the linear velocity returned by the drone in a twist message.
 	vel.header.stamp    = ros::Time::now();
 	vel.header.frame_id = "map";
-	vel.twist.linear.x  = pnd->navdata_demo.vx;
-	vel.twist.linear.y  = pnd->navdata_demo.vy;
-	vel.twist.linear.z  = pnd->navdata_demo.vz;
-	vel.twist.angular.x = 0.0;
+	vel.twist.linear.x  = pnd->navdata_demo.vx / 1000.0;
+	vel.twist.linear.y  = pnd->navdata_demo.vy / 1000.0;
+	vel.twist.linear.z  = pnd->navdata_demo.vz / 1000.0;
+	vel.twist.angular.x = pnd->;
 	vel.twist.angular.y = 0.0;
 	vel.twist.angular.z = 0.0;
 	vel_pub.publish(vel);
