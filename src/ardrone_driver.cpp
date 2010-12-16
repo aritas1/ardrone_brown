@@ -91,9 +91,9 @@ void ARDroneDriver::updateNavData(navdata_unpacked_t const *const pnd)
 	imu.angular_velocity.x = pnd->navdata_phys_measures.phys_gyros[GYRO_X] * M_PI / (180 * 1000.0);
 	imu.angular_velocity.y = pnd->navdata_phys_measures.phys_gyros[GYRO_Y] * M_PI / (180 * 1000.0);
 	imu.angular_velocity.z = pnd->navdata_phys_measures.phys_gyros[GYRO_Z] * M_PI / (180 * 1000.0);
-	twist.twist.angular.x = -imu.angular_velocity.x;
-	twist.twist.angular.y = -imu.angular_velocity.y;
-	twist.twist.angular.z =  imu.angular_velocity.z;
+	twist.twist.angular.x = -imu.angular_velocity.x * M_PI / 180.0;
+	twist.twist.angular.y = -imu.angular_velocity.y * M_PI / 180.0;
+	twist.twist.angular.z =  imu.angular_velocity.z * M_PI / 180.0;
 
 	// Acceleration is specified in milli-G's instead of m/s^2.
 	imu.linear_acceleration.x = pnd->navdata_phys_measures.phys_accs[ACC_X] / (1000.0 * 9.80665);
