@@ -1,3 +1,6 @@
-.svn
+*.o
+*.svn
 bin/
 build/
+ARDroneLib/Soft/Build/targets_versions
+ARDroneLib/Soft/Common/generated_custom.h
