@@ -10,10 +10,10 @@
 #include <ardrone_tool/UI/ardrone_input.h>
 #include <ardrone_tool/Com/config_com.h>
 
-int32_t MiscVar[NB_MISC_VARS] = {
-               DEFAULT_MISC1_VALUE,
+int32_t MiscVar[NB_MISC_VARS] = { 
+               DEFAULT_MISC1_VALUE, 
                DEFAULT_MISC2_VALUE,
-               DEFAULT_MISC3_VALUE,
+               DEFAULT_MISC3_VALUE, 
                DEFAULT_MISC4_VALUE
                                 };
 
@@ -131,7 +131,7 @@ C_RESULT ardrone_tool_setup_com( const char* ssid )
 	  vp_com_shutdown(COM_NAVDATA());
 	  res = C_FAIL;
   }
-#else
+#else  
   vp_com_init(COM_NAVDATA());
   vp_com_network_adapter_lookup(COM_NAVDATA(), ardrone_toy_network_adapter_cb);
   vp_com_local_config(COM_NAVDATA(), COM_CONFIG_NAVDATA());
@@ -150,20 +150,20 @@ C_RESULT ardrone_tool_setup_com( const char* ssid )
 
 #ifdef NO_ARDRONE_MAINLOOP
 C_RESULT ardrone_tool_init( const char* ardrone_ip, size_t n, AT_CODEC_FUNCTIONS_PTRS *ptrs)
-{
+{	
 	// Initalize mutex and condition
 	vp_os_mutex_init(&ardrone_tool_mutex);
 	ardrone_tool_in_pause = FALSE;
-
+	
 	//Fill structure AT codec and built the library AT commands.
    if( ptrs != NULL )
 	   ardrone_at_init_with_funcs( ardrone_ip, n, ptrs );
-   else
+   else	
       ardrone_at_init( ardrone_ip, n );
 
 	// Init subsystems
 	ardrone_timer_reset(&ardrone_tool_timer);
-
+	
 	ardrone_tool_input_init();
 	ardrone_control_init();
 	ardrone_navdata_client_init();
@@ -188,7 +188,7 @@ C_RESULT ardrone_tool_init(int argc, char **argv)
 	// Initalize mutex and condition
 	vp_os_mutex_init(&ardrone_tool_mutex);
 	ardrone_tool_in_pause = FALSE;
-
+	
 	//Fill structure AT codec and built the library AT commands.
 	ardrone_at_init( wifi_ardrone_ip, strlen( wifi_ardrone_ip) );
 
@@ -213,7 +213,7 @@ C_RESULT ardrone_tool_init(int argc, char **argv)
 	// Send start up configuration
 	ardrone_at_set_pmode( MiscVar[0] );
 	ardrone_at_set_ui_misc( MiscVar[0], MiscVar[1], MiscVar[2], MiscVar[3] );
-
+	
 	return res;
 }
 #endif
@@ -231,8 +231,8 @@ C_RESULT ardrone_tool_pause( void )
 
 	vp_os_mutex_lock(&ardrone_tool_mutex);
 	ardrone_tool_in_pause = TRUE;
-	vp_os_mutex_unlock(&ardrone_tool_mutex);
-
+	vp_os_mutex_unlock(&ardrone_tool_mutex);	
+	
 	return C_OK;
 }
 
@@ -242,8 +242,8 @@ C_RESULT ardrone_tool_resume( void )
 
 	vp_os_mutex_lock(&ardrone_tool_mutex);
 	ardrone_tool_in_pause = FALSE;
-	vp_os_mutex_unlock(&ardrone_tool_mutex);
-
+	vp_os_mutex_unlock(&ardrone_tool_mutex);	
+	
    return C_OK;
 }
 
@@ -263,7 +263,7 @@ C_RESULT ardrone_tool_update()
 			ardrone_tool_input_update();
 			res = ardrone_tool_update_custom();
 		}
-
+		
 		if( send_com_watchdog == TRUE )
 		{
 			ardrone_at_reset_com_watchdog();
@@ -293,7 +293,7 @@ C_RESULT ardrone_tool_update()
 C_RESULT ardrone_tool_shutdown()
 {
   C_RESULT res = C_OK;
-
+  
 #ifndef NO_ARDRONE_MAINLOOP
   res = ardrone_tool_shutdown_custom();
 #endif
@@ -302,8 +302,8 @@ C_RESULT ardrone_tool_shutdown()
   ardrone_navdata_client_shutdown();
   ardrone_control_shutdown();
   ardrone_tool_input_shutdown();
-
-  JOIN_THREAD(ardrone_control);
+ 
+  JOIN_THREAD(ardrone_control); 
   JOIN_THREAD(navdata_update);
 
   // Shutdown AT Commands
@@ -323,12 +323,12 @@ C_RESULT ardrone_tool_shutdown()
 
 int main(int argc, char **argv)
 {
-  argc=1; // Add to prevent arg checking, for e.g. roslaunch
   C_RESULT res;
   const char* old_locale;
   const char* appname = argv[0];
   int argc_backup = argc;
   char** argv_backup = argv;
+
   bool_t show_usage = FAILED( ardrone_tool_check_argc_custom(argc) ) ? TRUE : FALSE;
 
   argc--; argv++;
@@ -375,11 +375,11 @@ int main(int argc, char **argv)
     ardrone_tool_usage( appname );
     exit(-1);
   }
-
+  
   /* After a first analysis, the arguments are restored so they can be passed to the user-defined functions */
   argc=argc_backup;
   argv=argv_backup;
-
+  
   old_locale = setlocale(LC_NUMERIC, "en_GB.UTF-8");
 
   if( old_locale == NULL )
