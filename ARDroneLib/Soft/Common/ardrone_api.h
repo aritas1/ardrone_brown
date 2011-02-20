@@ -199,6 +199,7 @@ typedef struct _navdata_unpacked_t {
   navdata_vision_detect_t  navdata_vision_detect;
   navdata_watchdog_t       navdata_watchdog;
   navdata_adc_data_frame_t navdata_adc_data_frame;
+  navdata_video_stream_t navdata_video_stream;
 } navdata_unpacked_t;
 
 #define ardrone_navdata_pack( navdata_ptr, option ) (navdata_option_t*) navdata_pack_option( (uint8_t*) navdata_ptr,      \

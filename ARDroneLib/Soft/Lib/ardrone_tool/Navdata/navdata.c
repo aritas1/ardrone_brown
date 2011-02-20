@@ -147,6 +147,10 @@ C_RESULT ardrone_navdata_unpack_all(navdata_unpacked_t* navdata_unpacked, navdat
           navdata_option_ptr = NULL; // End of structure
           break;
 
+		case NAVDATA_VIDEO_STREAM_TAG:
+		  navdata_option_ptr = ardrone_navdata_unpack( navdata_option_ptr, navdata_unpacked->navdata_video_stream );
+		  break;
+
         default:
           PRINT("Tag %d is not a valid navdata option tag\n", (int) navdata_option_ptr->tag);
           navdata_option_ptr = NULL;

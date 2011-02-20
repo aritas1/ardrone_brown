@@ -180,6 +180,7 @@ typedef enum _navdata_tag_t {
   NAVDATA_VISION_DETECT_TAG,
   NAVDATA_WATCHDOG_TAG,
   NAVDATA_ADC_DATA_FRAME_TAG,
+  NAVDATA_VIDEO_STREAM_TAG,
   NAVDATA_CKS_TAG = 0xFFFF
 } navdata_tag_t;
 
@@ -482,6 +483,19 @@ typedef struct _navdata_adc_data_frame_t {
   uint32_t  version;
   uint8_t   data_frame[32];
 }_ATTRIBUTE_PACKED_ navdata_adc_data_frame_t;
+
+typedef struct _navdata_video_stream_t {
+  uint16_t  tag;
+  uint16_t  size;
+ 
+  uint8_t       quant;                  // quantizer reference used to encode frame [1:31]
+  uint32_t      frame_size;             // frame size (bytes)
+  uint32_t      frame_number;   // frame index
+  uint32_t      atcmd_ref_seq;  // atmcd ref sequence number
+  uint32_t      atcmd_mean_ref_gap;     // mean time between two consecutive atcmd_ref (ms)
+  float32_t atcmd_var_ref_gap;
+  uint32_t      atcmd_ref_quality; // estimator of atcmd link quality
+}_ATTRIBUTE_PACKED_ navdata_video_stream_t;
 
 
 #if defined(_MSC_VER)
